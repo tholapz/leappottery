@@ -1,0 +1,429 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Create your own model by Leap Motion</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		
+			
+		<script src="vendor/three.js/Three.js"></script>
+		<script src="vendor/three.js/Detector.js"></script>
+		<!-- https://github.com/mrdoob/stats.js -->
+		<script src="vendor/three.js/Stats.js"></script>
+
+		<script src="vendor/threex/THREEx.screenshot.js"></script>
+		<script src="vendor/threex/THREEx.FullScreen.js"></script>
+		<script src="vendor/threex/THREEx.WindowResize.js"></script>
+		<script src="vendor/threex.dragpancontrols.js"></script>
+
+		<script src="js/leap.js"></script>
+		
+
+		<link  href="css/main.css" rel="stylesheet"/>
+
+			<script type="text/javascript">
+		var stats, scene, renderer;
+		var camera, cameraControls;
+
+		function executeThreeJS( data ){
+
+			if( !init() )	animate();
+
+			// init the scene
+			function init(){
+
+				if( Detector.webgl ){
+					renderer = new THREE.WebGLRenderer({
+						antialias		: true,	// to get smoother output
+						preserveDrawingBuffer	: true	// to allow screenshot
+					});
+					//renderer.setClearColorHex( 0xBBBBBB, 1 );
+					renderer.setClearColor(0xBBBBBB, 1);
+				// uncomment if webgl is required
+				//}else{
+				//	Detector.addGetWebGLMessage();
+				//	return true;
+				}else{
+					renderer	= new THREE.CanvasRenderer();
+				}
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.getElementById('container').appendChild(renderer.domElement);
+
+				// add Stats.js - https://github.com/mrdoob/stats.js
+				stats = new Stats();
+				stats.domElement.style.position	= 'absolute';
+				stats.domElement.style.bottom	= '0px';
+				document.body.appendChild( stats.domElement );
+
+				// create a scene
+				scene = new THREE.Scene();
+
+				// put a camera in the scene
+				camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set(0, 0, 5);
+				scene.add(camera);
+
+				// create a camera contol
+				cameraControls	= new THREEx.DragPanControls(camera)
+
+				// transparently support window resize
+				THREEx.WindowResize.bind(renderer, camera);
+				// allow 'p' to make screenshot
+				THREEx.Screenshot.bindKey(renderer);
+				// allow 'f' to go fullscreen where this feature is supported
+				if( THREEx.FullScreen.available() ){
+					THREEx.FullScreen.bindKey();		
+					document.getElementById('inlineDoc').innerHTML	+= "- <i>f</i> for fullscreen";
+				}
+
+				
+				// here you add your objects
+				// data must be a 1D array of displacement from Y-Axis
+				/*
+				for (var i = data.length-1; i >= 0; i--) {
+					var radius = (ctx.canvas.width/2) - data[i][0];
+					radius /= 200;
+					 geometry	= new THREE.TorusGeometry( radius, 0.01 );
+					
+				var material	= new THREE.MeshNormalMaterial();
+				var mesh	= new THREE.Mesh( geometry, material);
+				mesh.rotation.x = 360;
+				mesh.position.y =  (0.01*(i - data.length/2));
+				scene.add( mesh );
+				};
+				*/
+
+				var verticesStr = "";
+				var faceStr = "";
+				var verticesCnt = 0;
+				var faceCnt = 0;
+				var faceIndexBace = 0;
+				var interval_i = 0.1;
+				var interval_y = 10;
+				var geometry = new THREE.Geometry();
+				//nested loop to compute polygons
+				//i is the counter revolve around y-axis 360 degrees
+			for (var i = Math.PI * 2; i > 0; i = i - interval_i) 
+			{
+				//y is the counter for each point on the vertical curve
+			    for(var y = data.length-1; y > interval_y ; y = y - interval_y)
+			    {			    	
+			    	
+			      var radius = ctx.canvas.width/2 -  data[y][0] ;
+			      var radius2 =  ctx.canvas.width/2 - data[y-interval_y][0] ;
+			      radius /=200;
+			      radius2 /=200;
+			      
+			        var x = Math.sin(i) * radius;
+			        var z = Math.cos(i) * radius;
+			        var x2 = Math.sin(i-interval_i) * radius2;
+			        var z2 = Math.cos(i-interval_i) * radius2;
+			        var x3 = Math.sin(i) * radius2;
+			        var z3 = Math.cos(i) * radius2;
+			        var x4 = Math.sin(i-interval_i) * radius;
+			        var z4 = Math.cos(i-interval_i) * radius;
+
+			        //this is for the inner side of the vase, it's not finish yet so it's commented out
+			        // var in_x = Math.sin(i) * (radius - 0.1);
+			        // var in_z = Math.cos(i) * (radius - 0.1);
+			        // var in_x2 = Math.sin(i-interval_i) * (radius2 - 0.1);
+			        // var in_z2 = Math.cos(i-interval_i) * (radius2 - 0.1);
+			        // var in_x3 = Math.sin(i) * (radius2 - 0.1);
+			        // var in_z3 = Math.cos(i) * (radius2 - 0.1);
+			        // var in_x4 = Math.sin(i-interval_i) * (radius - 0.1);
+			        // var in_z4 = Math.cos(i-interval_i) * (radius - 0.1);
+
+			        var point1 = new THREE.Vector3(x,data[y][1]/200,z);
+			        var point2 = new THREE.Vector3(x2,data[y-interval_y][1]/200,z2);
+			        var point3 = new THREE.Vector3(x3,data[y-interval_y][1]/200,z3);
+			        var point4 = new THREE.Vector3(x4,data[y][1]/200,z4);
+
+			        // var point5 = new THREE.Vector3(in_x,data[y][1]/200, in_z);
+			        // var point6 = new THREE.Vector3(in_x2,data[y-interval_y][1]/200,in_z2);
+			        // var point7 = new THREE.Vector3(in_x3,data[y-interval_y][1]/200,in_z3);
+			        // var point8 = new THREE.Vector3(in_x4,data[y][1]/200, in_z4);
+
+			        (function  () {
+			        	var v1 = point3;
+			        	var v2 = point2;
+			        	var v3 = point1;
+				        geometry.vertices.push(v1);
+				        geometry.vertices.push(v2);
+				        geometry.vertices.push(v3);
+				       
+
+				        var face = new THREE.Face3( faceIndexBace , faceIndexBace + 1, faceIndexBace + 2 );
+						face.normal = (function (){
+							var U1 = [v3.x-v2.x,v3.y-v2.y,v3.z-v2.z];
+         					var V1 = [v1.x-v2.x,v1.y-v2.y,v1.z-v2.z];
+					        var normal1 = [U1[1]*V1[2] - U1[2]*V1[1], U1[2]*V1[0] - U1[0]*V1[2], U1[0]*V1[1] - U1[1]*V1[0]];
+						return new THREE.Vector3( normal1[0], normal1[1], normal1[2]);
+						})();
+						geometry.faces.push( face );
+						verticesStr += v1.x + " " + v1.y + " " + v1.z + "\n";
+				        verticesStr += v2.x + " " + v2.y + " " + v2.z + "\n";
+				        verticesStr += v3.x + " " + v3.y + " " + v3.z + "\n";
+						faceStr += "3 " + (verticesCnt) + " " + (verticesCnt+1) + " " + (verticesCnt+2) + "\n";
+						verticesCnt += 3;
+						faceCnt++;
+			        	})();
+			        
+			      		(function  () {
+			      		var v1 = point2;
+			      		var v2 = point4;
+			      		var v3 = point1;
+			      		geometry.vertices.push(v1);
+			      		geometry.vertices.push(v2);
+			      		geometry.vertices.push(v3);
+			      		var face = new THREE.Face3( faceIndexBace + 3 , faceIndexBace + 4, faceIndexBace + 5 );
+						face.normal = (function (){
+						var U1 = [v2.x-v1.x,v2.y-v1.y,v2.z-v1.z];
+				         var V1 = [v3.x-v1.x,v3.y-v1.y,v3.z-v1.z];
+			         
+				        var normal2 = [U1[1]*V1[2] - U1[2]*V1[1], U1[2]*V1[0] - U1[0]*V1[2], U1[0]*V1[1] - U1[1]*V1[0]];
+			      
+						return new THREE.Vector3( normal2[0], normal2[1], normal2[2]);
+						})();
+						geometry.faces.push( face );
+						verticesStr += v1.x + " " + v1.y + " " + v1.z + "\n";
+				        verticesStr += v2.x + " " + v2.y + " " + v2.z + "\n";
+				        verticesStr += v3.x + " " + v3.y + " " + v3.z + "\n";
+						faceStr += "3 " + (verticesCnt) + " " + (verticesCnt+1) + " " + (verticesCnt+2) + "\n";
+						verticesCnt += 3;
+						faceCnt++;
+			      		})();
+
+						faceIndexBace = faceIndexBace + 6;
+			        }
+			      //Make the lid, at the bottom so it becomes a vase
+			     (function  () {
+			     	var radius = (ctx.canvas.width/2 - data[data.length-1][0])/200;
+		        	var v1 = new THREE.Vector3(Math.sin(i) * radius, data[data.length-1][1]/200, Math.cos(i) * radius);
+		        	var v2 = new THREE.Vector3(Math.sin(i-interval_i) * radius, data[data.length-1][1]/200, Math.cos(i-interval_i)*radius);
+		        	var v3 = new THREE.Vector3(0,data[data.length-1][1]/200,0);
+			        geometry.vertices.push(v1);
+			        geometry.vertices.push(v2);
+			        geometry.vertices.push(v3);
+
+			        var face = new THREE.Face3( faceIndexBace, faceIndexBace + 1, faceIndexBace + 2 );
+					face.normal = (function (){
+						var U1 = [v3.x-v2.x,v3.y-v2.y,v3.z-v2.z];
+     					var V1 = [v1.x-v2.x,v1.y-v2.y,v1.z-v2.z];
+				        var normal1 = [U1[1]*V1[2] - U1[2]*V1[1], U1[2]*V1[0] - U1[0]*V1[2], U1[0]*V1[1] - U1[1]*V1[0]];
+					return new THREE.Vector3( normal1[0], normal1[1], normal1[2]);
+					})();
+					face.normal.multiplyScalar(-1);
+				  geometry.faces.push( face );
+				  //var face2 = new THREE.Face3( faceIndexBace , faceIndexBace +1 , faceIndexBace +2);
+				  //face2.normal = face.normal.clone();
+				  //face2.normal.multiplyScalar(-1);
+				  //geometry.faces.push(face2);
+				  verticesStr += v1.x + " " + v1.y + " " + v1.z + "\n";
+			        verticesStr += v2.x + " " + v2.y + " " + v2.z + "\n";
+			        verticesStr += v3.x + " " + v3.y + " " + v3.z + "\n";
+					faceStr += "3 " + (verticesCnt) + " " + (verticesCnt+1) + " " + (verticesCnt+2) + "\n";
+					verticesCnt += 3;
+					faceCnt++;
+		         })();
+		         faceIndexBace = faceIndexBace + 3;
+			    }
+
+			    console.log(verticesStr + faceStr);
+			    var material	= new THREE.MeshNormalMaterial({
+			    	'shading': THREE.PhongShading,
+			    	'wireframe':true
+			    });
+				var mesh	= new THREE.Mesh( geometry, material);
+				// mesh.rotation.x = 360;
+				 mesh.position.y = 2;
+				 mesh.rotation.x = Math.PI;
+
+				 mesh.geometry.computeBoundingBox();
+				 var box = mesh.geometry.boundingBox.clone();
+				 // var Vmin = new THREE.Vector3(box.min.x, box.min.y, box.min.z);
+				 // var Vmax = new THREE.Vector3(box.max.x, box.max.y, box.max.z);
+				 var boxGeo = new THREE.CubeGeometry(box.max.x - box.min.x, box.max.y-box.min.y, box.max.z-box.min.z);
+				 var wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x00ee00, wireframe: true, transparent: true } ); 
+				 var boxMesh = new THREE.Mesh( boxGeo, wireframeMaterial);
+				scene.add( mesh );
+				scene.add( boxMesh );
+				
+			}
+
+			// animation loop
+			function animate() {
+
+				// loop on request animation loop
+				// - it has to be at the begining of the function
+				// - see details at http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+				requestAnimationFrame( animate );
+
+				// do the render
+				render();
+
+				// update stats
+				stats.update();
+			}
+
+			// render the scene
+			function render() {
+
+				// update camera controls
+				cameraControls.update();
+
+				// actually render the scene
+				renderer.render( scene, camera );
+			}
+		
+		}
+
+	</script>
+
+	<script type="text/javascript">
+	// this is the script for interfacing with Leap and get Input Data to Three.js
+
+	var imageData;
+    var ctx;
+    var mode = 0;
+    var data = [];
+    const NORMAL = 0;
+    const RECORD = 1;
+	
+    window.onload = function()
+    {
+      var c = document.getElementById("layer1");
+
+      ctx = c.getContext("2d");
+      ctx.canvas.width = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      imageData = ctx.createImageData(ctx.canvas.width, ctx.canvas.height);
+      // c.parentNode.removeChild(c);
+      // executeThreeJS();
+    }
+
+    document.onmousedown = function() 
+    {
+    	mode = RECORD;
+    }
+    document.onmouseup = function()
+    {
+    	mode = NORMAL;
+    	executeThreeJS(data);
+    }
+    document.onmousemove = function()
+    {
+
+    	if(mode == RECORD){
+    		data.push([event.x,event.y]);
+    	}
+    }
+
+    document.onkeydown = function() {
+       var KeyID = event.keyCode;
+      if(KeyID == 76){
+        mode = RECORD;
+      }
+    }
+
+     document.onkeyup = function() {
+      mode = NORMAL;
+      if(event.keyCode == 76){
+      	executeThreeJS(data);
+      	// CatmullRom.revolve(data, function(result)
+      	// {
+      	// 	var c = document.getElementById("layer1");
+      	// 	c.parentNode.removeChild(c);
+      	// 	//console.log(result);
+      	// 	 executeThreeJS(result);
+      		
+      	// });
+      }
+    }
+    </script>
+ <script type="text/javascript">
+ // var sampleInterval = 10;
+ // var sampleCnt =0;
+    var xmax = 0;
+    var xmin = Infinity;
+    var ymax = 0;
+    var ymin = Infinity;
+
+    var last_val = [0,0];
+
+      function moveFinger( posX, posY, posZ, dirX, dirY, dirZ) {
+
+        var can_x = posX + ctx.canvas.width/2;
+        var can_y = ctx.canvas.height - posY;
+          if(last_val[0] == can_x && last_val[1] == can_y) return;
+           ctx.fillStyle = "#000000";
+           ctx.fillRect(can_x,can_y, 1, 1);
+          if(mode == RECORD){
+
+            data.push([can_x,can_y]);
+            ctx.beginPath();
+            ctx.moveTo( data[0][0], data[0][1] );
+            for (var i = 1; i < data.length-2; i++) {
+                ctx.lineTo(  data[i][0], data[i][1] );
+            }
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo( ctx.canvas.width - data[0][0], data[0][1] );
+            for(var i = 1; i < data.length-2; i++){
+              ctx.lineTo( ctx.canvas.width-data[i][0], data[i][1]);
+            }
+            ctx.lineWidth =1;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+          }else{
+            var default_cl = [0, 0, 0];
+          }
+          last_val = [ can_x, can_y];
+      }
+
+     
+      var fingers = {};
+      Leap.loop(function(frame) {
+
+        var finger = frame.pointables[0];
+        if(!finger) return;
+        var posX = finger.tipPosition.x;
+        var posY = finger.tipPosition.y;
+        var posZ = (finger.tipPosition.y*3) - 400;
+        var dirX = -(finger.direction.y*90);
+        var dirY = -(finger.direction.z*90);
+        var dirZ = (finger.direction.x*90);
+        
+            
+        moveFinger( posX, posY, posZ, dirX, dirY, dirZ);
+   
+   	//if in state 2 (the model is displayed), rotate and scale using mouse and leap input
+   	if(cameraControls){
+   		var event = new CustomEvent('leapmove',{ 'detail':{'posX': posX, 'posY':posY } });
+		// Dispatch the event.
+		document.dispatchEvent(event);
+   	}
+      });
+
+    </script>
+   
+	</head>
+<body>
+	<!-- three.js container -->
+    	<div id="container"></div>
+    <!-- leap motion input container -->
+    <canvas class="canvas" id="layer1"></canvas>
+    
+	<!-- info on screen display -->
+	<div id="info">
+		<div class="bottom" id="inlineDoc" >
+			- <i>p</i> for screenshot
+		</div> 
+	</div> 
+
+
+</body>
+</html>
