@@ -1,8 +1,23 @@
-[Leap Motion Vasefication](https://github.com/tholapz/leappottery)
+[Leap Motion Vasefication](http://tholapz.com/app/vasefication.html)
 ==========================
-A simple modeling tool written in JavaScript. It has Leap Motion device support as well as mouse support. It uses Three.js library to render the result. (http://learningthreejs.com/blog/2011/12/20/boilerplate-for-three-js/).
 
-# Get Started
+Leap Motion Vasefication is a simple modeling tool written in JavaScript. We support Leap Motion device as well as mouse interface. We use ThreeJS to abstract the web browser 3D rendering
+
+instruction
+-----------
+draw a curve line on the left pane using one of the following methods:
+	1. Click and hold mouse to create a curve line
+	2. Press and hold "L" and draw a curve line from your finger (leap motion device required)
+
+the result will show on the right pane. To draw a new shape, click "Refresh Page"
+
+3rd party libraries
+-------------------
+ThreeJS boilerplate
 ```
-git clone https://github.com/tholapz/leappottery.git
+http://learningthreejs.com/blog/2011/12/20/boilerplate-for-three-js/
+```
+Leap Motion SDK
+```
+https://developer.leapmotion.com
 ```
