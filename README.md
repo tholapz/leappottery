@@ -1,6 +1,8 @@
 [Leap Motion Pottery](http://tholapz.github.io/leappottery/)
 ==========================
 
+![alt text](http://tholapz.github.io/leappottery/images/leappottery.png)
+
 Leap Motion Vasefication is a simple modeling tool written in JavaScript. We support Leap Motion device as well as mouse interface. We use ThreeJS to abstract the web browser 3D rendering
 
 instruction
